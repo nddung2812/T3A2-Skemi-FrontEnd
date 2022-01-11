@@ -23,17 +23,17 @@ export default function reducer(state, action) {
             occasions: [updatedOccasion, ...theRest],
          };
       }
-      // This callback/case is supposed to update the occasion list on state without occasion.id
-      // case "deleteOccasion": {
-      //    // const updatedoccasions = state.occasions.filter(
-      //    //    (occasion) => occasion.id !== parseInt(action.data)
-      //    // );
-      //    return {
-      //       ...state,
-      //       occasions: action.data,
-      //       // updatedoccasions,
-      //    };
-      // }
+
+      case "deleteOccasion": {
+         const updatedOccasions = state.occasions.filter((occasion) => {
+            return occasion.id !== parseInt(action.data)
+         });
+         return {
+            ...state,
+            occasions: updatedOccasions
+         }
+      }
+
       case "setRosters": {
           return{
               ...state,
@@ -75,6 +75,13 @@ export default function reducer(state, action) {
          };
       }
 
+      case "setAdmin": {
+         return {
+            ...state,
+            users: action.data
+         };
+      }
+
       case 'login': {
          return {
             ...state,
@@ -92,6 +99,16 @@ export default function reducer(state, action) {
             loggedInUser: null,
             auth: null,
          }
+      }
+
+      case "setToken": {
+         return {
+            ...state,
+            auth: {
+               ...state.auth,
+               token: action.data,
+            },
+         };
       }
 
       default:

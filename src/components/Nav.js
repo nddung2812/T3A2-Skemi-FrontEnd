@@ -1,5 +1,5 @@
 // IMPORTING APIS
-import React from "react";
+import React, {useState, useEffect } from "react";
 import {
    AppBar,
    Toolbar,
@@ -25,6 +25,9 @@ import AppRegistrationOutlinedIcon from "@mui/icons-material/AppRegistrationOutl
 import { Link, useNavigate } from "react-router-dom";
 import LoggedInTab from "./LoggedInTab";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
+import {useGlobalState} from '../utils/stateContext';
+import Spinner from "./Spinner";
+import { getAdminById } from "../services/userServices";
 
 const useStyles = makeStyles((theme) => ({
    root: {
@@ -70,6 +73,47 @@ const Nav = ({ loggedInUser, logout, props }) => {
       logout();
       setAnchor(null);
    };
+
+   const { store } = useGlobalState();
+   const { users } = store; 
+
+   // setting the display component state
+   const [displayComponent, setDisplayComponent] = useState(false);
+
+// setting the display spinner state
+   const [displaySpinner, setDisplaySpinner] = useState(false);
+
+// useEffect to set the interval for rendering the component
+
+   useEffect(() => {
+      setInterval(() => {
+         setDisplayComponent(true);
+      }, 5000);
+   }, []);
+
+// useEffect to set the interval for rendering the spinner
+    useEffect(() => {
+        let time = 5;
+        const timeValue = setInterval((interval) => {
+            setDisplaySpinner(true);
+            time = time - 1;
+            if (time <= 0) {
+                clearInterval(timeValue);
+                setDisplaySpinner(false);
+            }
+    }, 1000); },[]);
+
+    const [admin, setAdmin] = useState(null);
+   
+    const adminUser = 1
+ 
+    useEffect(() => {
+       getAdminById(adminUser)
+          .then((user) => setAdmin(user))
+          .catch((error) => console.log(error));
+    }, [adminUser]);
+ 
+    if (!admin) return null;
 
    return (
       <div className={classes.root}>
@@ -137,17 +181,63 @@ const Nav = ({ loggedInUser, logout, props }) => {
                            </ListItemIcon>
                            <Typography variant="h6"> All Events</Typography>
                         </MenuItem>
-
+                        {loggedInUser === admin.email &&
                         <MenuItem
                            onClick={() => setAnchor(null)}
                            component={Link}
-                           to="/"
+                           to="/create-event"
                         >
                            <ListItemIcon>
-                              <PersonOutlineOutlinedIcon />
+                              <BallotOutlinedIcon />
                            </ListItemIcon>
-                           <Typography variant="h6"> My Profile</Typography>
+                           <Typography variant="h6">Create an Event</Typography>
                         </MenuItem>
+                        }
+                        {loggedInUser === admin.email &&
+                        <MenuItem
+                           onClick={() => setAnchor(null)}
+                           component={Link}
+                           to="/create-roster"
+                        >
+                           <ListItemIcon>
+                              <BallotOutlinedIcon />
+                           </ListItemIcon>
+                           <Typography variant="h6"> Create a Roster</Typography>
+                        </MenuItem>
+                        }
+                        <MenuItem
+                           onClick={() => setAnchor(null)}
+                           component={Link}
+                           to="/event-schedule"
+                        >
+                           <ListItemIcon>
+                              <BallotOutlinedIcon />
+                           </ListItemIcon>
+                           <Typography variant="h6">Event's Schedule</Typography>
+                        </MenuItem>
+
+                        {displaySpinner && 
+                          <MenuItem>
+                            <Spinner />
+                          </MenuItem>
+                        }
+            
+                      {displayComponent &&
+
+                          users.map((user) => 
+                              user.email === loggedInUser? 
+                              <MenuItem 
+                                onClick={() => setAnchor(null)}
+                                component={Link}
+                                to= {`/users/${user.id}`}
+                              >
+                              <ListItemIcon>
+                                  <PersonOutlineOutlinedIcon />
+                              </ListItemIcon>
+                              <Typography variant="h6"> My Profile</Typography>
+                            </MenuItem>
+                         : null )
+                        }
                         <MenuItem
                            onClick={handleLogout}
                            component={Link}
@@ -214,5 +304,7 @@ const Nav = ({ loggedInUser, logout, props }) => {
       </div>
    );
 };
+
+
 
 export default Nav;
